@@ -1,0 +1,58 @@
+-- 1. Create Customer Table
+CREATE TABLE Customer (
+    CustomerID NUMBER PRIMARY KEY,
+    CustomerName VARCHAR2(50),
+    Email VARCHAR2(100) UNIQUE,
+    Phone VARCHAR2(15)
+);
+
+-- 2. Create Coupon Table
+CREATE TABLE Coupon (
+    CouponID NUMBER PRIMARY KEY,
+    CouponCode VARCHAR2(20) UNIQUE,
+    Discount NUMBER(5,2),
+    ExpiryDate DATE
+);
+
+-- 3. Create Payment Table
+CREATE TABLE Payment (
+    PaymentID NUMBER PRIMARY KEY,
+    CustomerID NUMBER REFERENCES Customer(CustomerID),
+    PaymentDate DATE,
+    Amount NUMBER(10,2),
+    PaymentMode VARCHAR2(20)
+);
+
+-- 4. Create GiftCouponTransaction Table
+CREATE TABLE GiftCouponTransaction (
+    TransactionID NUMBER PRIMARY KEY,
+    CustomerID NUMBER REFERENCES Customer(CustomerID),
+    CouponID NUMBER REFERENCES Coupon(CouponID),
+    PaymentID NUMBER REFERENCES Payment(PaymentID),
+    TransactionDate DATE,
+    Status VARCHAR2(20)
+);
+
+-- 5. Insert sample records
+INSERT INTO Customer VALUES (1, 'Amit Sharma', 'amit@gmail.com', '9876543210');
+INSERT INTO Customer VALUES (2, 'Priya Patel', 'priya@gmail.com', '9876509876');
+
+INSERT INTO Coupon VALUES (101, 'GIFT100', 100.00, '31-DEC-2025');
+INSERT INTO Coupon VALUES (102, 'SAVE50', 50.00, '30-JUN-2026');
+
+INSERT INTO Payment VALUES (201, 1, '29-OCT-2025', 500.00, 'Credit Card');
+INSERT INTO Payment VALUES (202, 2, '29-OCT-2025', 300.00, 'UPI');
+
+INSERT INTO GiftCouponTransaction VALUES (301, 1, 101, 201, '29-OCT-2025', 'Success');
+INSERT INTO GiftCouponTransaction VALUES (302, 2, 102, 202, '29-OCT-2025', 'Success');
+
+-- 6. Retrieve Transaction Report (Join Query)
+SELECT c.CustomerName, cp.CouponCode, cp.Discount, p.Amount, p.PaymentMode, g.Status
+FROM GiftCouponTransaction g
+JOIN Customer c ON g.CustomerID = c.CustomerID
+JOIN Coupon cp ON g.CouponID = cp.CouponID
+JOIN Payment p ON g.PaymentID = p.PaymentID;
+| CustomerName | CouponCode | Discount | Amount | PaymentMode | Status  |
+| ------------ | ---------- | -------- | ------ | ----------- | ------- |
+| Amit Sharma  | GIFT100    | 100.00   | 500.00 | Credit Card | Success |
+| Priya Patel  | SAVE50     | 50.00    | 300.00 | UPI         | Success |
